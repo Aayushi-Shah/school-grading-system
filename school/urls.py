@@ -9,6 +9,7 @@ urlpatterns = [
     path('getmarks',views.getMarks.as_view(),name='get_marks'),    
     path('getmarks/<int:grade>',views.getMarksByGrade.as_view(),name='get_marks_by_grade'),
     path('getmarks/<str:subject>',views.getMarksBySubject.as_view(),name='get_marks_by_subject'),
+    path('fetchmarks',views.fetchMarks.as_view(),name='fetch_marks'),
     
 ]
 

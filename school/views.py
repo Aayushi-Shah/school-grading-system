@@ -174,6 +174,22 @@ class getMarksBySubject(APIView):
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
 
+#ClassBasedView for fetching marks for teacher
+class fetchMarks(APIView):
+	def get(self, request, format=None):
+		id = request.META['HTTP_TOKEN']
+		try:
+			u = User.objects.get(id=id,is_teacher=True)
+			# Logic HERE 
+			marks = Marksheet.objects.all()
+			return teacherMarksJSON(marks,u)
+		except User.DoesNotExist:
+			data = {}
+			data['success'] = False
+			data['message'] = UNAUTHORIZED_MESSAGE
+			return Response(data,status=403)
+
+
 
 def studentMarksJSON(marks,u):
 	data = {}
@@ -186,5 +202,22 @@ def studentMarksJSON(marks,u):
 		data['message'] = EMPTY_MARKSHEET_MESSAGE
 		data['success'] = False
 		return Response(data,status=422)
+
+def teacherMarksJSON(marks,u):
+	data = {}	
+	if marks:
+		data['success'] = True					
+		serialized_data = MarksTeacherSerializer(marks,many=True).data
+		for d in serialized_data:			
+			d['student'] = User.objects.get(id=d["user"],is_teacher=False).email
+			del d["user"]
+		data['data'] = serialized_data
+		data['message'] = "Marks fetched for {0}".format(u.email)
+		return Response(data)
+	else:
+		data['message'] = EMPTY_MARKSHEET_MESSAGE
+		data['success'] = False
+		return Response(data,status=422)
+
 
 
