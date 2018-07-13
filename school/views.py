@@ -16,7 +16,6 @@ from .models import *
 from .serializers import *
 
 #Importing user defined modules
-from .permissions  import *
 from .encryption import *
 from .pdfconvertor import *
 
@@ -124,8 +123,22 @@ class getMarks(APIView):
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
-
 			
+#ClassBasedView for getting marks by grade for student
+class getMarksByGrade(APIView):
+	def get(self, request, grade, format=None):
+		id = request.META['HTTP_TOKEN']
+		data = {}
+		try:
+			u = User.objects.get(id=id,is_teacher=False)
+			marks = Marksheet.objects.filter(user = u, grade = grade)
+			return studentMarksJSON(marks,u)
+		except Exception:
+			data['success'] = False
+			data['message'] = UNAUTHORIZED_MESSAGE
+			return Response(data,status=403)
+
+
 def studentMarksJSON(marks,u):
 	data = {}
 	if marks:
@@ -137,4 +150,5 @@ def studentMarksJSON(marks,u):
 		data['message'] = EMPTY_MARKSHEET_MESSAGE
 		data['success'] = False
 		return Response(data,status=422)
+
 

@@ -7,6 +7,8 @@ urlpatterns = [
     path('login', views.login.as_view(), name='login'),
     path('addmarks/<filename>',views.addMarks.as_view(),name='add_marks'),
     path('getmarks',views.getMarks.as_view(),name='get_marks'),    
+    path('getmarks/<int:grade>',views.getMarksByGrade.as_view(),name='get_marks_by_grade'),
+    
 
     
 ]
