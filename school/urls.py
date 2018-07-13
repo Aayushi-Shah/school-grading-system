@@ -8,8 +8,7 @@ urlpatterns = [
     path('addmarks/<filename>',views.addMarks.as_view(),name='add_marks'),
     path('getmarks',views.getMarks.as_view(),name='get_marks'),    
     path('getmarks/<int:grade>',views.getMarksByGrade.as_view(),name='get_marks_by_grade'),
-    
-
+    path('getmarks/<str:subject>',views.getMarksBySubject.as_view(),name='get_marks_by_subject'),
     
 ]
 
