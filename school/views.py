@@ -189,6 +189,61 @@ class fetchMarks(APIView):
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
 
+#ClassBasedView for fecthing marks by grade for teacher
+class fetchMarksByGrade(APIView):
+	def get(self, request, grade,format=None):
+		id = request.META['HTTP_TOKEN']
+		try:
+			u = User.objects.get(id=id,is_teacher=True)
+			# Logic HERE 
+			marks = Marksheet.objects.filter(grade=grade)
+			return teacherMarksJSON(marks,u)
+		except User.DoesNotExist:
+			data = {}
+			data['success'] = False
+			data['message'] = UNAUTHORIZED_MESSAGE
+			return Response(data,status=403)
+
+#ClassBasedView for fecthing marks by subject for teacher
+class fetchMarksBySubject(APIView):
+	def get(self, request,subject, format=None):
+		data={}
+		id = request.META['HTTP_TOKEN']
+		try:
+			if subject not in SUBJECT_LIST:
+				data['message'] = INVALID_SUBJECT_MESSAGE
+				data['success'] = False
+				return Response(data,status=422)
+			else:
+				u = User.objects.get(id=id,is_teacher=True)
+				marks = Marksheet.objects.all()
+				if marks:
+						data['success'] = True
+						serialized_data = MarksTeacherSerializer(marks,many=True).data
+						new_data = []
+						for i in serialized_data:
+							new_data.append(dict(i))
+						for d in new_data:
+							l = list(d.keys())
+							for key in l:
+								if key not in ["user","grade",subject]:
+									del d[key]
+								if key == "user":
+									u = User.objects.get(id=d[key],is_teacher=False)
+									d['student'] = u.email
+									del d[key]
+						data['data'] = new_data								
+						data['message'] = "Marks fetched for {0}".format(u.email)
+						return Response(data)
+				else:
+					data['message'] = EMPTY_MARKSHEET_MESSAGE
+					data['success'] = False
+					return Response(data,status=422)
+		except User.DoesNotExist:
+			data = {}
+			data['success'] = False
+			data['message'] = UNAUTHORIZED_MESSAGE
+			return Response(data,status=403)
 
 
 def studentMarksJSON(marks,u):
