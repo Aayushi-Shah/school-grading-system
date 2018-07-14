@@ -5,6 +5,8 @@ import uuid
 
 class User(models.Model):
 	id = models.CharField(max_length=255,primary_key=True)
+	first_name=models.CharField(max_length=50)
+	last_name=models.CharField(max_length=50)
 	email = models.EmailField(max_length=255,unique=True)
 	password = models.CharField(max_length=255)
 	is_teacher = models.BooleanField(default=False)

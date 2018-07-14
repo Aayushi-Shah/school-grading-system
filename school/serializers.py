@@ -11,3 +11,7 @@ class MarksTeacherSerializer (serializers.ModelSerializer):
  		model = Marksheet
  		exclude = ('id',)
 
+class UserSerializer (serializers.ModelSerializer):
+ 	class Meta:
+ 		model = User
+ 		exclude = ('id','password')

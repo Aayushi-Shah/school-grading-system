@@ -1,7 +1,7 @@
 import pdftables_api
 import pandas as pd
-import os
-c = pdftables_api.Client('helvs2tvuf21')
+# import os
+c = pdftables_api.Client('p6rxm6rk91il')
 
 def convert(INPUT_FILENAME='name.pdf'):
 	OUTPUT_FILENAME='result.csv'
@@ -11,6 +11,6 @@ def convert(INPUT_FILENAME='name.pdf'):
 	# removeFile(OUTPUT_FILENAME)	
 	return data 
 	
-def removeFile(FILENAME):
-	if os.path.isfile(FILENAME):
-		os.remove(FILENAME)
+# def removeFile(FILENAME):
+# 	if os.path.isfile(FILENAME):
+# 		os.remove(FILENAME)

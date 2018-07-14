@@ -12,7 +12,8 @@ urlpatterns = [
     path('fetchmarks',views.fetchMarks.as_view(),name='fetch_marks'),
 	path('fetchmarks/<int:grade>',views.fetchMarksByGrade.as_view(),name='fetch_marks_by_grade'),
     path('fetchmarks/<str:subject>',views.fetchMarksBySubject.as_view(),name='fetch_marks_by_subject'),
-    
+    path('userprofile',views.userProfile.as_view(),name='user_profile'),
+
     
 ]
 

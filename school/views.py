@@ -2,10 +2,13 @@
 import sys
 from django.shortcuts import render
 from django.http import *
+import json
+import pandas as pd
 
 #Importing rest_framework modules
 from rest_framework import permissions
 from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.permissions import *
 from rest_framework.response import Response
 from rest_framework.parsers import *
@@ -27,6 +30,7 @@ MARKS_ALREADY_EXISTS_MESSAGE = "Marks have already been entered for students in 
 UNAUTHORIZED_MESSAGE = "You're not authorized!!!"
 INVALID_SUBJECT_MESSAGE = "Subject Not Available"
 EMPTY_MARKSHEET_MESSAGE = "Marksheet Not Available"
+USER_DOESNOTEXIST="User Is Not Valid "
 
 # ClassBasedView for login 
 class login(APIView):
@@ -52,6 +56,7 @@ class login(APIView):
 			data['message'] = "Invalid Credentials"			
 			return Response(data,status=403)
 
+#Adding Marks to Marksheet model for teacher
 class addMarks(APIView):
 	"""docstring for AddMarks"""
 	parser_classes = (FileUploadParser,)
@@ -63,7 +68,8 @@ class addMarks(APIView):
 			with open('input.pdf', 'wb+') as destination:
 				for chunk in f.chunks():
 					destination.write(chunk)
-				data=convert('input.pdf')
+			
+					data=convert('input.pdf')
 			
 			marksheet=Marksheet()
 			row_count=data.shape[0]
@@ -74,7 +80,7 @@ class addMarks(APIView):
 			for row in range(row_count):
 				student_id=data.iloc[row]['student_id']
 				try:
-					print("Student\t\t:{0}".format(student_id))
+					# print("Student\t\t:{0}".format(student_id))
 					user = User.objects.get(email=student_id,is_teacher=False)
 					grade=data.iloc[row]['grade']
 					english=data.iloc[row]['english']
@@ -105,6 +111,7 @@ class addMarks(APIView):
 				data['success'] = False	
 				return Response(data, status = 422)
 		except Exception as e:
+			print(e)
 			data = {}
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
@@ -116,14 +123,14 @@ class getMarks(APIView):
 		id = request.META['HTTP_TOKEN']
 		data = {}
 		try:
-			u = User.objects.get(id=id,is_teacher=False)
+			u=User.objects.get(id=id,is_teacher=False)
 			marks = Marksheet.objects.filter(user = u)
 			return studentMarksJSON(marks,u)
 		except Exception:
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
-
+	
 #ClassBasedView for getting marks by grade for student
 class getMarksByGrade(APIView):
 	def get(self, request, grade, format=None):
@@ -137,6 +144,7 @@ class getMarksByGrade(APIView):
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
+	
 
 #ClassBasedView for getting marks by subject for student
 class getMarksBySubject(APIView):
@@ -173,36 +181,38 @@ class getMarksBySubject(APIView):
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
+	
 
 #ClassBasedView for fetching marks for teacher
 class fetchMarks(APIView):
 	def get(self, request, format=None):
 		id = request.META['HTTP_TOKEN']
+		data = {}
 		try:
 			u = User.objects.get(id=id,is_teacher=True)
 			# Logic HERE 
 			marks = Marksheet.objects.all()
 			return teacherMarksJSON(marks,u)
 		except User.DoesNotExist:
-			data = {}
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
+	
 
 #ClassBasedView for fecthing marks by grade for teacher
 class fetchMarksByGrade(APIView):
 	def get(self, request, grade,format=None):
 		id = request.META['HTTP_TOKEN']
+		data = {}
 		try:
 			u = User.objects.get(id=id,is_teacher=True)
-			# Logic HERE 
 			marks = Marksheet.objects.filter(grade=grade)
 			return teacherMarksJSON(marks,u)
 		except User.DoesNotExist:
-			data = {}
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
+	
 
 #ClassBasedView for fecthing marks by subject for teacher
 class fetchMarksBySubject(APIView):
@@ -229,8 +239,8 @@ class fetchMarksBySubject(APIView):
 								if key not in ["user","grade",subject]:
 									del d[key]
 								if key == "user":
-									u = User.objects.get(id=d[key],is_teacher=False)
-									d['student'] = u.email
+									stud = User.objects.get(id=d[key],is_teacher=False)
+									d['student'] = stud.email
 									del d[key]
 						data['data'] = new_data								
 						data['message'] = "Marks fetched for {0}".format(u.email)
@@ -244,8 +254,9 @@ class fetchMarksBySubject(APIView):
 			data['success'] = False
 			data['message'] = UNAUTHORIZED_MESSAGE
 			return Response(data,status=403)
+	
 
-
+#Generalized class for calling serializer after verifying student
 def studentMarksJSON(marks,u):
 	data = {}
 	if marks:
@@ -258,6 +269,7 @@ def studentMarksJSON(marks,u):
 		data['success'] = False
 		return Response(data,status=422)
 
+#Generalized class for calling serializer after verifying student
 def teacherMarksJSON(marks,u):
 	data = {}	
 	if marks:
@@ -274,5 +286,19 @@ def teacherMarksJSON(marks,u):
 		data['success'] = False
 		return Response(data,status=422)
 
-
+#Class for viewing student profile
+class userProfile(APIView):
+	def get(self,request,format=None):
+		id = request.META['HTTP_TOKEN']
+		data = {}
+		try:
+			u=User.objects.get(id=id)
+			data['success']=True
+			data['data']=UserSerializer(u).data
+			return Response(data)
+		except Exception:
+			data['success'] = False
+			data['message'] = UNAUTHORIZED_MESSAGE
+			return Response(data,status=403)
+	
 

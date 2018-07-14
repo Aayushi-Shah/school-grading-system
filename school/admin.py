@@ -3,7 +3,7 @@ from . models import *
 # Register your models here.
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id','email', 'password', 'is_teacher')
+    list_display = ('id', 'first_name', 'last_name','email', 'is_teacher')
     exclude = ('id',)
 
 class MarksheetAdmin(admin.ModelAdmin):
